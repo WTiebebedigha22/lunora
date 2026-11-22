@@ -1,0 +1,50 @@
+name: lunora
+description: "Lunora — a PCOS-first wellness companion."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  hive_flutter: ^1.1.0
+  intl: 0.20.3
+  fl_chart: ^0.69.0
+  pdf: ^3.11.1
+  printing: ^5.13.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.3
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/icon.png"
+  adaptive_icon_background: "#F8E1E7"
+  adaptive_icon_foreground: "assets/icons/icon.png"
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#FDFBFD"
+  image: assets/icons/splash_screen.png
+  android: true
+  ios: true
+  android_12:
+    image: assets/icons/splash_screen.png
+    color: "#FDFBFD"
