@@ -154,6 +154,7 @@ class _LogList extends StatelessWidget {
                     '${log.symptoms.length} symptom'
                     '${log.symptoms.length == 1 ? '' : 's'} · '
                     'severity ${log.severity}'
+                    '${log.mood.isNotEmpty ? ' · ${log.mood}' : ''}'
                     '${medCount > 0 ? ' · $medCount med${medCount == 1 ? '' : 's'}' : ''}',
                     style: TextStyle(
                       fontSize: 14,

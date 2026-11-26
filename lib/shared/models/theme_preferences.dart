@@ -6,7 +6,7 @@
 class ThemePreferences {
   ThemePreferences({
     this.mode = 'system',
-    this.schemeId = 'purple',
+    this.schemeId = 'red',
     this.localeCode = 'system',
   });
 
@@ -35,7 +35,7 @@ class ThemePreferences {
   factory ThemePreferences.fromMap(Map<dynamic, dynamic> m) {
     return ThemePreferences(
       mode: (m['mode'] as String?) ?? 'system',
-      schemeId: (m['schemeId'] as String?) ?? 'purple',
+      schemeId: (m['schemeId'] as String?) ?? 'red',
       localeCode: (m['localeCode'] as String?) ?? 'system',
     );
   }

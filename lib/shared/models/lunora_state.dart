@@ -136,19 +136,25 @@ class OnboardingProfile {
   OnboardingProfile({
     required this.goal,
     this.lastPeriod,
+    int avatar = 0,
     List<String>? priorities,
     int? onboardedAt,
-  })  : priorities = priorities ?? const [],
+  })  : _avatar = avatar,
+        priorities = priorities ?? const [],
         onboardedAt = onboardedAt ?? DateTime.now().millisecondsSinceEpoch;
 
   final String goal;
   final String? lastPeriod;
+  // Nullable backing storage keeps pre-avatar instances safe across hot reload.
+  final int? _avatar;
+  int get avatar => _avatar ?? 0;
   final List<String> priorities;
   final int onboardedAt;
 
   Map<String, dynamic> toMap() => {
         'goal': goal,
         'lastPeriod': lastPeriod,
+        'avatar': avatar,
         'priorities': priorities,
         'onboardedAt': onboardedAt,
       };
@@ -157,6 +163,7 @@ class OnboardingProfile {
     return OnboardingProfile(
       goal: (m['goal'] as String?) ?? 'symptoms',
       lastPeriod: m['lastPeriod'] as String?,
+      avatar: (m['avatar'] as num?)?.toInt() ?? 0,
       priorities: List<String>.from((m['priorities'] as List?) ?? const []),
       onboardedAt: (m['onboardedAt'] as num?)?.toInt() ?? 0,
     );

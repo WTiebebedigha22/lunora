@@ -106,18 +106,18 @@ class LunoraSchemes {
   static const red = LunoraScheme(
     id: 'red',
     label: 'Red',
-    primary: Color(0xFFD97A7A),
-    primaryDeep: Color(0xFFB84F4F),
-    primarySoft: Color(0xFFF7DCDC),
-    primaryPale: Color(0xFFFAEEEE),
-    surface: Color(0xFFFAF4F4),
+    primary: Color(0xFFFF625A),
+    primaryDeep: Color(0xFFD94F4A),
+    primarySoft: Color(0xFFFFE1DC),
+    primaryPale: Color(0xFFFFF0EB),
+    surface: Color(0xFFFFF0EB),
     surfaceAlt: Color(0xFFFFFFFF),
-    line: Color(0xFFEFE0E0),
+    line: Color(0xFFF3E7E4),
     ink: Color(0xFF1A1A1A),
     inkSoft: Color(0xFF6B6B6B),
     inkPale: Color(0xFFA8A8A8),
-    gradientStart: Color(0xFFE89A9A),
-    gradientEnd: Color(0xFFD97A7A),
+    gradientStart: Color(0xFFFF786F),
+    gradientEnd: Color(0xFFFF554F),
   );
 
   static const List<LunoraScheme> all = [purple, pink, blue, red];

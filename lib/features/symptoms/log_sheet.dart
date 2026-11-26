@@ -20,14 +20,16 @@ class _LogSheetState extends State<LogSheet> {
 
   late final Set<String> _selected;
   late int _severity;
+  late String _mood;
   late final TextEditingController _notes;
-  int _page = 0; // 0 = severity, 1 = symptoms, 2 = notes
+  int _page = 0; // severity, symptoms, mood, notes
 
   @override
   void initState() {
     super.initState();
     _selected = {...(widget.initial?.symptoms ?? const [])};
     _severity = widget.initial?.severity ?? 3;
+    _mood = widget.initial?.mood ?? '';
     _notes = TextEditingController(text: widget.initial?.notes ?? '');
   }
 
@@ -43,6 +45,7 @@ class _LogSheetState extends State<LogSheet> {
       base.copyWith(
         symptoms: _selected.toList(),
         severity: _severity,
+        mood: _mood,
         notes: _notes.text.trim(),
       ),
     );
@@ -120,8 +123,8 @@ class _LogSheetState extends State<LogSheet> {
             child: SizedBox(
               width: double.infinity,
               child: LunoraGradientButton(
-                label: _page < 2 ? 'Next' : 'Log',
-                onTap: _page < 2 ? () => setState(() => _page++) : _save,
+                label: _page < 3 ? 'Continue' : 'Save check-in',
+                onTap: _page < 3 ? () => setState(() => _page++) : _save,
               ),
             ),
           ),
@@ -131,11 +134,12 @@ class _LogSheetState extends State<LogSheet> {
   }
 
   Widget _stepper() {
-    const labels = ['Flow', 'Symptoms', 'Mood'];
+    const labels = ['Intensity', 'Symptoms', 'Mood', 'Notes'];
     const icons = [
       Icons.water_drop_outlined,
       Icons.local_florist_outlined,
       Icons.emoji_emotions_outlined,
+      Icons.edit_note_outlined,
     ];
 
     return Padding(
@@ -207,6 +211,8 @@ class _LogSheetState extends State<LogSheet> {
       case 1:
         return _symptomsPage();
       case 2:
+        return _moodPage();
+      case 3:
       default:
         return _notesPage();
     }
@@ -290,24 +296,11 @@ class _LogSheetState extends State<LogSheet> {
   Widget _symptomsPage() {
     return ListView(
       children: [
-        const SizedBox(height: 4),
-        Center(
-          child: Text(
-            'Symptoms',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ),
+        const SizedBox(height: 12),
+        Text('What are you feeling?', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 6),
-        Center(
-          child: Text(
-            'Tap everything that applies',
-            style: TextStyle(
-              color: LunoraTokens.inkSoft,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
+        Text('Choose anything that feels right today.', style: TextStyle(color: LunoraTokens.inkSoft, fontSize: 13)),
+        const SizedBox(height: 20),
         ...SymptomCatalog.groups.map(_symptomGroup),
       ],
     );
@@ -329,11 +322,12 @@ class _LogSheetState extends State<LogSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          ...group.items.map((item) {
+          Wrap(
+            spacing: 8,
+            runSpacing: 9,
+            children: group.items.map((item) {
             final active = _selected.contains(item.id);
-            return _symptomRow(
-              item: item,
-              active: active,
+            return GestureDetector(
               onTap: () => setState(() {
                 if (active) {
                   _selected.remove(item.id);
@@ -341,8 +335,21 @@ class _LogSheetState extends State<LogSheet> {
                   _selected.add(item.id);
                 }
               }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: active ? LunoraTokens.purple : LunoraTokens.purplePale,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Text(
+                  item.label(l10n),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: active ? Colors.white : LunoraTokens.ink),
+                ),
+              ),
             );
-          }),
+          }).toList(),
+          ),
         ],
       ),
     );
@@ -430,6 +437,54 @@ class _LogSheetState extends State<LogSheet> {
           decoration: const InputDecoration(
             hintText: 'Anything you want to remember…',
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _moodPage() {
+    const moods = [
+      ('great', 'Great', '😊'),
+      ('calm', 'Calm', '😌'),
+      ('tired', 'Tired', '😴'),
+      ('low', 'Low', '😔'),
+      ('anxious', 'Anxious', '😟'),
+      ('irritable', 'Irritable', '😣'),
+      ('stressed', 'Stressed', '😵‍💫'),
+      ('foggy', 'Foggy', '😶‍🌫️'),
+    ];
+    return ListView(
+      children: [
+        const SizedBox(height: 12),
+        Text('How are you feeling?', style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: 6),
+        Text('Your mood is yours to define. Pick one, or skip this step.', style: TextStyle(color: LunoraTokens.inkSoft, fontSize: 13)),
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: moods.map((mood) {
+            final selected = _mood == mood.$1;
+            return GestureDetector(
+              onTap: () => setState(() => _mood = selected ? '' : mood.$1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                decoration: BoxDecoration(
+                  color: selected ? LunoraTokens.purple : LunoraTokens.purplePale,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(mood.$3, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 7),
+                    Text(mood.$2, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: selected ? Colors.white : LunoraTokens.ink)),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

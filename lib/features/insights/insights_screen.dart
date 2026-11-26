@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../content/education.dart';
+import '../../content/insights_feed.dart';
 import '../../core/theme/lunora_components.dart';
 import '../../core/theme/lunora_tokens.dart';
 import '../../shared/models/lunora_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../education/education_detail_page.dart';
 import '../education/illustration.dart';
 
@@ -189,6 +191,30 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
             const SizedBox(height: 20),
 
+            if (_mode == 0 && _query.trim().isEmpty) ...[
+              _personalPatterns(),
+              const SizedBox(height: 24),
+              _resourceSection(
+                'Latest articles',
+                latestArticles,
+                Icons.newspaper_outlined,
+                LunoraTokens.purple,
+              ),
+              const SizedBox(height: 20),
+              _resourceSection(
+                'Real stories',
+                realStories,
+                Icons.favorite_border,
+                const Color(0xFFE36D67),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'More to explore',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: LunoraTokens.ink),
+              ),
+              const SizedBox(height: 10),
+            ],
+
             // For You hero
             if (forYou != null) ...[
               Padding(
@@ -252,6 +278,184 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _personalPatterns() {
+    final recentLogs = widget.state.logs.entries
+        .where((entry) => !entry.value.isEmpty)
+        .toList()
+      ..sort((a, b) => b.key.compareTo(a.key));
+    final recent = recentLogs.take(7).toList();
+    final titleStyle = TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: LunoraTokens.ink,
+    );
+
+    if (recent.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Your patterns', style: titleStyle),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(color: LunoraTokens.purplePale, borderRadius: BorderRadius.circular(22)),
+            child: Text(
+              'Your personal insights will appear as you log symptoms and moods. They’re based on your entries on this device.',
+              style: TextStyle(color: LunoraTokens.inkSoft, height: 1.45),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final symptomCounts = <String, int>{};
+    for (final entry in recent) {
+      for (final symptom in entry.value.symptoms) {
+        symptomCounts.update(symptom, (count) => count + 1, ifAbsent: () => 1);
+      }
+    }
+    final topSymptom = symptomCounts.entries.isEmpty
+        ? null
+        : (symptomCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first;
+    final averageSeverity = recent
+            .where((entry) => entry.value.symptoms.isNotEmpty)
+            .map((entry) => entry.value.severity)
+            .fold<int>(0, (sum, value) => sum + value) /
+        (recent.where((entry) => entry.value.symptoms.isNotEmpty).length.clamp(1, 7));
+    final moodCounts = <String, int>{};
+    for (final entry in recent) {
+      if (entry.value.mood.isNotEmpty) {
+        moodCounts.update(entry.value.mood, (count) => count + 1, ifAbsent: () => 1);
+      }
+    }
+    final topMood = moodCounts.entries.isEmpty
+        ? null
+        : (moodCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first;
+    final cards = <Widget>[
+      _patternCard(
+        icon: Icons.calendar_today_outlined,
+        value: '${recent.length} day${recent.length == 1 ? '' : 's'}',
+        caption: 'logged recently',
+      ),
+      if (topSymptom != null)
+        _patternCard(
+          icon: Icons.spa_outlined,
+          value: topSymptom.key.replaceAll('_', ' '),
+          caption: 'most logged symptom',
+        ),
+      if (recent.any((entry) => entry.value.symptoms.isNotEmpty))
+        _patternCard(
+          icon: Icons.monitor_heart_outlined,
+          value: averageSeverity.toStringAsFixed(1),
+          caption: 'average intensity · 1–5',
+        ),
+      if (topMood != null)
+        _patternCard(
+          icon: Icons.mood_outlined,
+          value: topMood.key,
+          caption: 'most logged mood',
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Your patterns', style: titleStyle),
+        const SizedBox(height: 4),
+        Text('From your 7 most recent logged days', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 125,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: cards.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, index) => cards[index],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _patternCard({required IconData icon, required String value, required String caption}) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: LunoraTokens.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: LunoraTokens.line)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: LunoraTokens.purple, size: 20),
+          const Spacer(),
+          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+          const SizedBox(height: 3),
+          Text(caption, maxLines: 2, style: TextStyle(fontSize: 11, color: LunoraTokens.inkSoft)),
+        ],
+      ),
+    );
+  }
+
+  Widget _resourceSection(String title, List<InsightsEntry> entries, IconData icon, Color accent) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+        const SizedBox(height: 10),
+        ...entries.map((entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Material(
+                color: LunoraTokens.card,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _openSource(entry),
+                  child: Container(
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: LunoraTokens.line)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(color: accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(13)),
+                          child: Icon(icon, color: accent, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(entry.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: LunoraTokens.ink, height: 1.3)),
+                              const SizedBox(height: 5),
+                              Text(entry.summary, style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft, height: 1.4)),
+                              const SizedBox(height: 8),
+                              Text('${entry.publisher} · ${entry.date}', style: TextStyle(fontSize: 10.5, color: accent, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.open_in_new, color: LunoraTokens.inkPale, size: 17),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )),
+      ],
+    );
+  }
+
+  Future<void> _openSource(InsightsEntry entry) async {
+    final uri = Uri.parse(entry.url);
+    if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open this source.')),
     );
   }
 
@@ -449,7 +653,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       ),
                       if (read) ...[
                         const SizedBox(width: 6),
-                        Icon(Icons.check_circle,
+                        const Icon(Icons.check_circle,
                             size: 12, color: LunoraTokens.success),
                       ],
                     ],

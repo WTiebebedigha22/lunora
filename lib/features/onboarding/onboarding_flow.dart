@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/lunora_tokens.dart';
 import '../../shared/models/lunora_state.dart';
+import '../../shared/models/avatar_catalog.dart';
 import '../../shared/models/symptom_catalog.dart';
 
 import 'package:lunora/l10n/app_localizations.dart';
@@ -21,6 +22,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   String _lastPeriod = '';
   final Set<String> _priorities = {};
   bool _consent = false;
+  int _avatar = 2;
 
   static const List<String> _goals = [
     'Understand my symptoms',
@@ -29,7 +31,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     'Track medication',
   ];
 
-  int get _total => 7;
+  int get _total => 8;
 
   bool get _canNext {
     switch (_step) {
@@ -55,6 +57,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       goal: _goalId(_goal ?? _goals.first),
       lastPeriod: _lastPeriod.isEmpty ? null : _lastPeriod,
       priorities: _priorities.toList(),
+      avatar: _avatar,
     ));
   }
 
@@ -467,6 +470,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           ),
         );
       case 6:
+        return _screen(
+          title: 'Choose your avatar',
+          body: 'Pick a little portrait that feels like you. You can change it any time.',
+          content: _avatarPicker(),
+        );
+      case 7:
       default:
         return _screen(
           title: 'Ready when you are',
@@ -529,6 +538,46 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           ),
         );
     }
+  }
+
+  Widget _avatarPicker() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: LunoraTokens.card,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: AvatarCatalog.options.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 8,
+        ),
+        itemBuilder: (context, index) {
+          final selected = _avatar == index;
+          return GestureDetector(
+            onTap: () => setState(() => _avatar = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              decoration: BoxDecoration(
+                color: selected ? LunoraTokens.purpleSoft : LunoraTokens.bg,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? LunoraTokens.purple : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: Center(
+                child: Text(AvatarCatalog.glyph(index), style: const TextStyle(fontSize: 27)),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _optionPill({

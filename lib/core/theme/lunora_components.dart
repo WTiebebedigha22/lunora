@@ -475,11 +475,13 @@ class LunoraHomeHeader extends StatelessWidget {
     required this.greeting,
     required this.date,
     this.onProfileTap,
+    this.avatarGlyph,
   });
 
   final String greeting;
   final String date;
   final VoidCallback? onProfileTap;
+  final String? avatarGlyph;
 
   @override
   Widget build(BuildContext context) {
@@ -493,11 +495,9 @@ class LunoraHomeHeader extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
-          child: Icon(
-            Icons.eco_outlined,
-            color: LunoraTokens.bg,
-            size: 20,
-          ),
+          child: avatarGlyph == null
+              ? Icon(Icons.eco_outlined, color: LunoraTokens.bg, size: 20)
+              : Text(avatarGlyph!, style: const TextStyle(fontSize: 23)),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -525,19 +525,22 @@ class LunoraHomeHeader extends StatelessWidget {
             ],
           ),
         ),
-        GestureDetector(
-          onTap: onProfileTap,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: LunoraTokens.ink.withValues(alpha: 0.7),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.person,
-              color: LunoraTokens.bg,
-              size: 22,
+        Tooltip(
+          message: 'Medications',
+          child: GestureDetector(
+            onTap: onProfileTap,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: LunoraTokens.ink.withValues(alpha: 0.7),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.medication_outlined,
+                color: LunoraTokens.bg,
+                size: 22,
+              ),
             ),
           ),
         ),

@@ -4,6 +4,7 @@ import '../../content/education.dart';
 import '../../core/theme/lunora_components.dart';
 import '../../core/theme/lunora_tokens.dart';
 import '../../shared/models/day_log.dart';
+import '../../shared/models/avatar_catalog.dart';
 import '../../shared/models/lunora_state.dart';
 import '../../shared/models/symptom_catalog.dart';
 import '../cycle/cycle_stats.dart';
@@ -183,6 +184,9 @@ class TodayScreen extends StatelessWidget {
               greeting: _greeting(),
               date: _formattedDate(),
               onProfileTap: () => _openMeds(context),
+              avatarGlyph: state.onboarding == null
+                  ? null
+                  : AvatarCatalog.glyph(state.onboarding!.avatar),
             ),
             const SizedBox(height: 20),
 
@@ -234,6 +238,15 @@ class TodayScreen extends StatelessWidget {
                     value:
                         medsTotal == 0 ? 'None yet' : '$medsTaken / $medsTotal',
                     onTap: () => _openMeds(context),
+                  ),
+                  const SizedBox(width: 12),
+                  _insightCard(
+                    icon: Icons.mood_outlined,
+                    title: 'Today\'s mood',
+                    value: todayLog?.mood.isNotEmpty == true
+                        ? '${todayLog!.mood[0].toUpperCase()}${todayLog.mood.substring(1)}'
+                        : 'Not logged',
+                    onTap: () => _openLog(context),
                   ),
                   const SizedBox(width: 12),
                   _insightCard(
@@ -297,53 +310,75 @@ class TodayScreen extends StatelessWidget {
   }
 
   Widget _heroState(CycleStats? stats) {
-    String caption;
-    String icon;
-
-    if (stats == null || stats.lastStart == null) {
-      caption = 'Log your first period to see your cycle here';
-      icon = '✿';
-    } else if (stats.currentOngoing != null) {
-      final day = _dayOfCurrentCycle(stats.currentOngoing!.startDate);
-      caption = 'Day $day of your current cycle';
-      icon = '❁';
-    } else if (stats.completedCount < 2) {
-      caption = 'One more cycle and we can show your range';
-      icon = '❀';
-    } else {
-      caption = 'Cycles range ${stats.minLength}–${stats.maxLength} days';
-      icon = '❋';
-    }
-
+    final day = stats?.currentOngoing == null
+        ? null
+        : _dayOfCurrentCycle(stats!.currentOngoing!.startDate);
+    final hasPeriod = day != null;
+    final phaseLabel = hasPeriod
+        ? 'Period day $day'
+        : stats?.lastStart == null
+            ? 'Your cycle starts here'
+            : 'Cycle day ${stats!.lastStart == null ? '—' : DateTime.now().difference(stats.lastStart!).inDays + 1}';
     return Container(
-      height: 200,
       decoration: BoxDecoration(
-        color: LunoraTokens.purplePale,
-        borderRadius: BorderRadius.circular(LunoraTokens.radiusXl),
+        gradient: LinearGradient(
+          colors: [const Color(0xFFFFE4DE), LunoraTokens.purplePale],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Text(
-            icon,
-            style: TextStyle(
-              fontSize: 72,
-              color: LunoraTokens.purple,
-              height: 1,
+          SizedBox(
+            width: 112,
+            height: 112,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox.expand(
+                  child: CircularProgressIndicator(
+                    value: hasPeriod ? (day! / 5).clamp(0.05, 1.0) : 0.12,
+                    strokeWidth: 9,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: Colors.white.withValues(alpha: .75),
+                    valueColor: AlwaysStoppedAnimation(LunoraTokens.purple),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(hasPeriod ? '$day' : '♡', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+                    Text(hasPeriod ? 'day' : 'cycle', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              caption,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: LunoraTokens.ink,
-                height: 1.4,
-              ),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(phaseLabel, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+                const SizedBox(height: 6),
+                Text(
+                  hasPeriod
+                      ? 'Take a moment to check in with yourself.'
+                      : stats?.lastStart == null
+                          ? 'Log a period to start learning your cycle.'
+                          : 'Your cycle is being tracked as you log.',
+                  style: TextStyle(fontSize: 13, height: 1.4, color: LunoraTokens.inkSoft),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .8), borderRadius: BorderRadius.circular(30)),
+                  child: Text(hasPeriod ? 'Period in progress' : 'Cycle tracking', style: TextStyle(fontWeight: FontWeight.w600, color: LunoraTokens.purpleDeep, fontSize: 12)),
+                ),
+              ],
             ),
           ),
         ],

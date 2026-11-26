@@ -5,6 +5,7 @@ import '../../core/theme/lunora_schemes.dart';
 import '../../core/theme/lunora_tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/models/lunora_state.dart';
+import '../../shared/models/avatar_catalog.dart';
 import '../../shared/models/theme_preferences.dart';
 import 'demo_data_screen.dart';
 import 'report_generator.dart';
@@ -131,6 +132,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(l.settingsTitle,
                 style: Theme.of(context).textTheme.headlineLarge),
             const SizedBox(height: 24),
+            if (widget.state.onboarding != null) ...[
+              _avatarCard(),
+              const SizedBox(height: 24),
+            ],
 
             // ── Appearance ────────────────────────────
             _sectionLabel(l.appearanceSection),
@@ -205,6 +210,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _avatarCard() {
+    final profile = widget.state.onboarding!;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: LunoraTokens.card,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 25,
+                backgroundColor: LunoraTokens.purplePale,
+                child: Text(AvatarCatalog.glyph(profile.avatar), style: const TextStyle(fontSize: 29)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Your avatar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+                    const SizedBox(height: 2),
+                    Text('Choose a portrait that feels like you', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(AvatarCatalog.options.length, (index) {
+              final selected = profile.avatar == index;
+              return GestureDetector(
+                onTap: () async {
+                  final updatedProfile = OnboardingProfile(
+                    goal: profile.goal,
+                    lastPeriod: profile.lastPeriod,
+                    priorities: profile.priorities,
+                    avatar: index,
+                    onboardedAt: profile.onboardedAt,
+                  );
+                  await widget.onUpdate(widget.state.copyWith(onboarding: updatedProfile));
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 43,
+                  height: 43,
+                  decoration: BoxDecoration(
+                    color: selected ? LunoraTokens.purpleSoft : LunoraTokens.bg,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: selected ? LunoraTokens.purple : LunoraTokens.line, width: selected ? 2 : 1),
+                  ),
+                  child: Center(child: Text(AvatarCatalog.glyph(index), style: const TextStyle(fontSize: 24))),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
