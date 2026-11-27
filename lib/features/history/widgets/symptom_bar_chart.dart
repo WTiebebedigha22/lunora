@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/theme/lunora_tokens.dart';
 import '../../../shared/models/symptom_catalog.dart';
@@ -11,7 +11,7 @@ class SymptomBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = LunoraLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
 
     final top = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));

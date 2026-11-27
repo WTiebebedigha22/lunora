@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'lunora_tokens.dart';
 
@@ -27,6 +27,15 @@ class LunoraCard extends StatelessWidget {
         color: bg,
         borderRadius: BorderRadius.circular(LunoraTokens.radiusLg),
         border: Border.all(color: LunoraTokens.line),
+        boxShadow: LunoraTokens.isDark
+            ? const []
+            : [
+                BoxShadow(
+                  color: LunoraTokens.ink.withValues(alpha: .035),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: child,
     );
@@ -123,31 +132,52 @@ class LunoraGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: height,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: LunoraTokens.primaryGradient,
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(LunoraTokens.radiusPill),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(LunoraTokens.radiusPill),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+          child: Ink(
+            height: height,
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            decoration: BoxDecoration(
+              gradient: LunoraTokens.primaryGradient,
+              borderRadius: BorderRadius.circular(LunoraTokens.radiusPill),
+              boxShadow: LunoraTokens.isDark
+                  ? const []
+                  : [
+                      BoxShadow(
+                        color: LunoraTokens.purple.withValues(alpha: .22),
+                        blurRadius: 16,
+                        offset: const Offset(0, 7),
+                      ),
+                    ],
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -406,12 +436,21 @@ class LunoraBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 5),
       decoration: BoxDecoration(
-        color: LunoraTokens.bg,
+        color: LunoraTokens.card,
         border: Border(
           top: BorderSide(color: LunoraTokens.line, width: 1),
         ),
+        boxShadow: LunoraTokens.isDark
+            ? const []
+            : [
+                BoxShadow(
+                  color: LunoraTokens.ink.withValues(alpha: .035),
+                  blurRadius: 14,
+                  offset: const Offset(0, -4),
+                ),
+              ],
       ),
       child: SafeArea(
         top: false,
@@ -420,32 +459,53 @@ class LunoraBottomBar extends StatelessWidget {
             final item = items[i];
             final active = i == index;
             return Expanded(
-              child: GestureDetector(
-                onTap: () => onTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        active ? item.activeIcon : item.icon,
-                        size: 22,
-                        color:
-                            active ? LunoraTokens.purple : LunoraTokens.inkPale,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w500,
-                          color: active
-                              ? LunoraTokens.purple
-                              : LunoraTokens.inkPale,
+              child: Semantics(
+                button: true,
+                selected: active,
+                label: item.label,
+                child: InkWell(
+                  onTap: () => onTap(i),
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          width: 54,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: active
+                                ? LunoraTokens.purplePale
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Icon(
+                            active ? item.activeIcon : item.icon,
+                            size: 21,
+                            color: active
+                                ? LunoraTokens.purpleDeep
+                                : LunoraTokens.inkPale,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 3),
+                        Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight:
+                                active ? FontWeight.w600 : FontWeight.w500,
+                            color: active
+                                ? LunoraTokens.purpleDeep
+                                : LunoraTokens.inkPale,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -491,12 +551,13 @@ class LunoraHomeHeader extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: LunoraTokens.ink,
+            color: LunoraTokens.purplePale,
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
           child: avatarGlyph == null
-              ? Icon(Icons.eco_outlined, color: LunoraTokens.bg, size: 20)
+              ? Icon(Icons.eco_outlined,
+                  color: LunoraTokens.purpleDeep, size: 20)
               : Text(avatarGlyph!, style: const TextStyle(fontSize: 23)),
         ),
         const SizedBox(width: 14),
@@ -533,12 +594,12 @@ class LunoraHomeHeader extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: LunoraTokens.ink.withValues(alpha: 0.7),
+                color: LunoraTokens.purplePale,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.medication_outlined,
-                color: LunoraTokens.bg,
+                color: LunoraTokens.purpleDeep,
                 size: 22,
               ),
             ),

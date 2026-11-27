@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -12,10 +13,10 @@ import 'app_localizations_fr.dart';
 
 // ignore_for_file: type=lint
 
-/// Callers can lookup localized strings with an instance of LunoraLocalizations
-/// returned by `LunoraLocalizations.of(context)`.
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
 ///
-/// Applications need to include `LunoraLocalizations.delegate()` in their app's
+/// Applications need to include `AppLocalizations.delegate()` in their app's
 /// `localizationDelegates` list, and the locales they support in the app's
 /// `supportedLocales` list. For example:
 ///
@@ -23,8 +24,8 @@ import 'app_localizations_fr.dart';
 /// import 'l10n/app_localizations.dart';
 ///
 /// return MaterialApp(
-///   localizationsDelegates: LunoraLocalizations.localizationsDelegates,
-///   supportedLocales: LunoraLocalizations.supportedLocales,
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
 ///   home: MyApplicationHome(),
 /// );
 /// ```
@@ -61,20 +62,20 @@ import 'app_localizations_fr.dart';
 /// Select and expand the newly-created Localizations item then, for each
 /// locale your application supports, add a new item and select the locale
 /// you wish to add from the pop-up menu in the Value field. This list should
-/// be consistent with the languages listed in the LunoraLocalizations.supportedLocales
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
-abstract class LunoraLocalizations {
-  LunoraLocalizations(String locale)
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
       : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
-  static LunoraLocalizations of(BuildContext context) {
-    return Localizations.of<LunoraLocalizations>(context, LunoraLocalizations)!;
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<LunoraLocalizations> delegate =
-      _LunoraLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -865,14 +866,13 @@ abstract class LunoraLocalizations {
   String get symptomFlowLight;
 }
 
-class _LunoraLocalizationsDelegate
-    extends LocalizationsDelegate<LunoraLocalizations> {
-  const _LunoraLocalizationsDelegate();
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
 
   @override
-  Future<LunoraLocalizations> load(Locale locale) {
-    return SynchronousFuture<LunoraLocalizations>(
-        lookupLunoraLocalizations(locale));
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
   }
 
   @override
@@ -880,24 +880,24 @@ class _LunoraLocalizationsDelegate
       <String>['ar', 'en', 'es', 'fr'].contains(locale.languageCode);
 
   @override
-  bool shouldReload(_LunoraLocalizationsDelegate old) => false;
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
-LunoraLocalizations lookupLunoraLocalizations(Locale locale) {
+AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'ar':
-      return LunoraLocalizationsAr();
+      return AppLocalizationsAr();
     case 'en':
-      return LunoraLocalizationsEn();
+      return AppLocalizationsEn();
     case 'es':
-      return LunoraLocalizationsEs();
+      return AppLocalizationsEs();
     case 'fr':
-      return LunoraLocalizationsFr();
+      return AppLocalizationsFr();
   }
 
   throw FlutterError(
-      'LunoraLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
       'an issue with the localizations generation tool. Please file an issue '
       'on GitHub with a reproducible sample app and the gen-l10n configuration '
       'that was used.');

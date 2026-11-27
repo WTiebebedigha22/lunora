@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Soft colored illustration panel for education cards.
 /// Uses a big glyph and soft color; no image assets required.

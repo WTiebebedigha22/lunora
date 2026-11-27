@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 
 import '../../content/education.dart';
 import '../../content/insights_feed.dart';
@@ -8,6 +9,7 @@ import '../../shared/models/lunora_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../education/education_detail_page.dart';
 import '../education/illustration.dart';
+import '../cycle/personalized_outlook.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({
@@ -194,6 +196,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
             if (_mode == 0 && _query.trim().isEmpty) ...[
               _personalPatterns(),
               const SizedBox(height: 24),
+              _personalOutlook(),
+              const SizedBox(height: 24),
+              _gentleCareIdeas(),
+              const SizedBox(height: 24),
               _resourceSection(
                 'Latest articles',
                 latestArticles,
@@ -210,7 +216,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
               const SizedBox(height: 24),
               Text(
                 'More to explore',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: LunoraTokens.ink),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: LunoraTokens.ink),
               ),
               const SizedBox(height: 10),
             ],
@@ -281,6 +290,230 @@ class _InsightsScreenState extends State<InsightsScreen> {
     );
   }
 
+  Widget _gentleCareIdeas() {
+    final recentLogs = widget.state.logs.entries.toList()
+      ..sort((a, b) => b.key.compareTo(a.key));
+    final recent = recentLogs.take(7).map((entry) => entry.value).toList();
+    final symptoms = recent.expand((log) => log.symptoms).toSet();
+    final moods =
+        recent.map((log) => log.mood).where((mood) => mood.isNotEmpty).toSet();
+    final ideas = <(IconData, String, String)>[];
+
+    if (symptoms.contains('cramping')) {
+      ideas.add((
+        Icons.wb_sunny_outlined,
+        'For cramps',
+        'A warm shower or wrapped heat pad, or gentle movement if it feels comfortable.'
+      ));
+    }
+    if (symptoms.contains('cravings')) {
+      ideas.add((
+        Icons.restaurant_outlined,
+        'For cravings',
+        'Notice when they show up without judging yourself. There is no single “PCOS diet” that suits everyone.'
+      ));
+    }
+    if (moods.any(const {'low', 'anxious', 'stressed'}.contains)) {
+      ideas.add((
+        Icons.favorite_border,
+        'For a hard day',
+        'Try a small pause, write down what you need, or reach out to someone you trust.'
+      ));
+    }
+    if (ideas.isEmpty) {
+      ideas.add((
+        Icons.spa_outlined,
+        'Keep it gentle',
+        'Rest, a comfortable routine, and movement you enjoy can be good ways to care for yourself.'
+      ));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Gentle care ideas',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: LunoraTokens.ink)),
+        const SizedBox(height: 4),
+        Text(
+            'Small options, not treatment advice. Pick what feels right for you.',
+            style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+        const SizedBox(height: 10),
+        ...ideas.map((idea) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                  color: LunoraTokens.purplePale,
+                  borderRadius: BorderRadius.circular(17)),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(idea.$1, size: 19, color: LunoraTokens.purple),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(idea.$2,
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: LunoraTokens.ink)),
+                        const SizedBox(height: 3),
+                        Text(idea.$3,
+                            style: TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                                color: LunoraTokens.inkSoft)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+        Wrap(
+          spacing: 8,
+          children: [
+            TextButton(
+              onPressed: () =>
+                  _openCareSource('https://www.nhs.uk/symptoms/period-pain/'),
+              child: const Text('NHS period-pain guidance'),
+            ),
+            TextButton(
+              onPressed: () => _openCareSource(
+                  'https://www.monash.edu/medicine/mchri/pcos/guideline'),
+              child: const Text('PMOS care guideline'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _personalOutlook() {
+    final outlook = PersonalizedOutlook.fromHistory(
+      cycles: widget.state.cycles,
+      logs: widget.state.logs,
+    );
+    final prediction = outlook.prediction;
+    final titleStyle = TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: LunoraTokens.ink,
+    );
+    final upcoming = outlook.days
+        .where((day) => day.patterns.isNotEmpty)
+        .take(3)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Your outlook', style: titleStyle),
+        const SizedBox(height: 5),
+        Text(
+          'Based on your logged period starts, moods, and symptoms.',
+          style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft),
+        ),
+        const SizedBox(height: 12),
+        if (prediction != null)
+          _outlookCard(
+            icon: Icons.calendar_month_outlined,
+            title: 'Next period estimate',
+            body:
+                '${DateFormat('MMM d').format(prediction.earliest)}–${DateFormat('MMM d').format(prediction.latest)} · about ${prediction.cycleLength} days between starts. ${prediction.intervalCount < 2 ? 'This is an early estimate from one logged cycle.' : 'This range reflects how much your recent cycles varied.'}',
+          )
+        else
+          _outlookCard(
+            icon: Icons.calendar_month_outlined,
+            title: 'Building your cycle estimate',
+            body: widget.state.cycles.isEmpty
+                ? 'Log period start dates to estimate your next cycle. Your own history will replace the starter estimate.'
+                : 'One logged period start gives us a reference point. Log another start to estimate your usual interval.',
+          ),
+        if (upcoming.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          for (final day in upcoming)
+            _outlookCard(
+              icon: Icons.auto_awesome_outlined,
+              title:
+                  '${DateFormat('EEE, MMM d').format(day.date)} · cycle day ${day.cycleDay}',
+              body:
+                  'In ${day.comparableCycles} of your previous cycles, you logged ${day.patterns.join(', ')} around this point. This is a pattern, not a prediction of how you will feel.',
+            ),
+        ] else
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: _outlookCard(
+              icon: Icons.insights_outlined,
+              title: 'Your next few days',
+              body: widget.state.cycles.length < 3
+                  ? 'As you log moods and symptoms across more cycles, we can show which ones tend to recur around the same cycle days.'
+                  : 'No repeated mood or symptom pattern is clear for the next few days yet. Keep logging what you notice.',
+            ),
+          ),
+        const SizedBox(height: 5),
+        Text(
+          'Cycle timing can vary, and these estimates cannot confirm ovulation or predict symptoms with certainty.',
+          style: TextStyle(fontSize: 11, color: LunoraTokens.inkSoft),
+        ),
+      ],
+    );
+  }
+
+  Widget _outlookCard({
+    required IconData icon,
+    required String title,
+    required String body,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: LunoraTokens.purplePale,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: LunoraTokens.purple, size: 19),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: LunoraTokens.ink)),
+                const SizedBox(height: 4),
+                Text(body,
+                    style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: LunoraTokens.inkSoft)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openCareSource(String url) async {
+    if (await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open this source.')),
+    );
+  }
+
   Widget _personalPatterns() {
     final recentLogs = widget.state.logs.entries
         .where((entry) => !entry.value.isEmpty)
@@ -302,7 +535,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: LunoraTokens.purplePale, borderRadius: BorderRadius.circular(22)),
+            decoration: BoxDecoration(
+                color: LunoraTokens.purplePale,
+                borderRadius: BorderRadius.circular(22)),
             child: Text(
               'Your personal insights will appear as you log symptoms and moods. They’re based on your entries on this device.',
               style: TextStyle(color: LunoraTokens.inkSoft, height: 1.45),
@@ -320,21 +555,29 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
     final topSymptom = symptomCounts.entries.isEmpty
         ? null
-        : (symptomCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first;
+        : (symptomCounts.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value)))
+            .first;
     final averageSeverity = recent
             .where((entry) => entry.value.symptoms.isNotEmpty)
             .map((entry) => entry.value.severity)
             .fold<int>(0, (sum, value) => sum + value) /
-        (recent.where((entry) => entry.value.symptoms.isNotEmpty).length.clamp(1, 7));
+        (recent
+            .where((entry) => entry.value.symptoms.isNotEmpty)
+            .length
+            .clamp(1, 7));
     final moodCounts = <String, int>{};
     for (final entry in recent) {
       if (entry.value.mood.isNotEmpty) {
-        moodCounts.update(entry.value.mood, (count) => count + 1, ifAbsent: () => 1);
+        moodCounts.update(entry.value.mood, (count) => count + 1,
+            ifAbsent: () => 1);
       }
     }
     final topMood = moodCounts.entries.isEmpty
         ? null
-        : (moodCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first;
+        : (moodCounts.entries.toList()
+              ..sort((a, b) => b.value.compareTo(a.value)))
+            .first;
     final cards = <Widget>[
       _patternCard(
         icon: Icons.calendar_today_outlined,
@@ -366,7 +609,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
       children: [
         Text('Your patterns', style: titleStyle),
         const SizedBox(height: 4),
-        Text('From your 7 most recent logged days', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+        Text('From your 7 most recent logged days',
+            style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
         const SizedBox(height: 12),
         SizedBox(
           height: 125,
@@ -381,29 +625,48 @@ class _InsightsScreenState extends State<InsightsScreen> {
     );
   }
 
-  Widget _patternCard({required IconData icon, required String value, required String caption}) {
+  Widget _patternCard(
+      {required IconData icon,
+      required String value,
+      required String caption}) {
     return Container(
       width: 150,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: LunoraTokens.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: LunoraTokens.line)),
+      decoration: BoxDecoration(
+          color: LunoraTokens.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: LunoraTokens.line)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: LunoraTokens.purple, size: 20),
           const Spacer(),
-          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+          Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: LunoraTokens.ink)),
           const SizedBox(height: 3),
-          Text(caption, maxLines: 2, style: TextStyle(fontSize: 11, color: LunoraTokens.inkSoft)),
+          Text(caption,
+              maxLines: 2,
+              style: TextStyle(fontSize: 11, color: LunoraTokens.inkSoft)),
         ],
       ),
     );
   }
 
-  Widget _resourceSection(String title, List<InsightsEntry> entries, IconData icon, Color accent) {
+  Widget _resourceSection(
+      String title, List<InsightsEntry> entries, IconData icon, Color accent) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+        Text(title,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: LunoraTokens.ink)),
         const SizedBox(height: 10),
         ...entries.map((entry) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -415,14 +678,18 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   onTap: () => _openSource(entry),
                   child: Container(
                     padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: LunoraTokens.line)),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: LunoraTokens.line)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           width: 38,
                           height: 38,
-                          decoration: BoxDecoration(color: accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(13)),
+                          decoration: BoxDecoration(
+                              color: accent.withValues(alpha: .12),
+                              borderRadius: BorderRadius.circular(13)),
                           child: Icon(icon, color: accent, size: 20),
                         ),
                         const SizedBox(width: 12),
@@ -430,16 +697,30 @@ class _InsightsScreenState extends State<InsightsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(entry.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: LunoraTokens.ink, height: 1.3)),
+                              Text(entry.title,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: LunoraTokens.ink,
+                                      height: 1.3)),
                               const SizedBox(height: 5),
-                              Text(entry.summary, style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft, height: 1.4)),
+                              Text(entry.summary,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: LunoraTokens.inkSoft,
+                                      height: 1.4)),
                               const SizedBox(height: 8),
-                              Text('${entry.publisher} · ${entry.date}', style: TextStyle(fontSize: 10.5, color: accent, fontWeight: FontWeight.w600)),
+                              Text('${entry.publisher} · ${entry.date}',
+                                  style: TextStyle(
+                                      fontSize: 10.5,
+                                      color: accent,
+                                      fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(Icons.open_in_new, color: LunoraTokens.inkPale, size: 17),
+                        Icon(Icons.open_in_new,
+                            color: LunoraTokens.inkPale, size: 17),
                       ],
                     ),
                   ),

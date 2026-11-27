@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'lunora_schemes.dart';
 
@@ -59,8 +59,8 @@ class LunoraTokens {
   // Radius
   static const double radiusSm = 8;
   static const double radiusMd = 12;
-  static const double radiusLg = 16;
-  static const double radiusXl = 24;
+  static const double radiusLg = 20;
+  static const double radiusXl = 28;
   static const double radiusPill = 999;
 
   // Gradient

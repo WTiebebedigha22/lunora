@@ -10,7 +10,7 @@ class SymptomItem {
   final String glyph;
 
   /// Localized label lookup.
-  String label(LunoraLocalizations l) {
+  String label(AppLocalizations l) {
     switch (id) {
       case 'acne':
         return l.symptomAcne;
@@ -61,7 +61,7 @@ class SymptomGroup {
   final String glyph;
   final List<SymptomItem> items;
 
-  String label(LunoraLocalizations l) {
+  String label(AppLocalizations l) {
     switch (id) {
       case 'hormonal':
         return l.symptomHormonal;
@@ -123,7 +123,7 @@ class SymptomCatalog {
     ),
   ];
 
-  static String labelOf(String id, LunoraLocalizations l) {
+  static String labelOf(String id, AppLocalizations l) {
     for (final g in groups) {
       for (final item in g.items) {
         if (item.id == id) return item.label(l);

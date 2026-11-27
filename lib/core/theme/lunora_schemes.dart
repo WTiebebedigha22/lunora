@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A coordinated color palette for one scheme, in both light
 /// and dark variants.
@@ -105,19 +105,19 @@ class LunoraSchemes {
   // ── Red ────────────────────────────────────────────────────
   static const red = LunoraScheme(
     id: 'red',
-    label: 'Red',
-    primary: Color(0xFFFF625A),
-    primaryDeep: Color(0xFFD94F4A),
-    primarySoft: Color(0xFFFFE1DC),
-    primaryPale: Color(0xFFFFF0EB),
-    surface: Color(0xFFFFF0EB),
+    label: 'Blush',
+    primary: Color(0xFFE97870),
+    primaryDeep: Color(0xFFC85E58),
+    primarySoft: Color(0xFFF9DDD8),
+    primaryPale: Color(0xFFFFF0EC),
+    surface: Color(0xFFFFF4F0),
     surfaceAlt: Color(0xFFFFFFFF),
-    line: Color(0xFFF3E7E4),
-    ink: Color(0xFF1A1A1A),
-    inkSoft: Color(0xFF6B6B6B),
-    inkPale: Color(0xFFA8A8A8),
-    gradientStart: Color(0xFFFF786F),
-    gradientEnd: Color(0xFFFF554F),
+    line: Color(0xFFF1E4E0),
+    ink: Color(0xFF2A2223),
+    inkSoft: Color(0xFF75696A),
+    inkPale: Color(0xFFAA9D9D),
+    gradientStart: Color(0xFFEF8E84),
+    gradientEnd: Color(0xFFE46E68),
   );
 
   static const List<LunoraScheme> all = [purple, pink, blue, red];

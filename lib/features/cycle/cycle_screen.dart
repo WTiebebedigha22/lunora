@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/lunora_components.dart';
 import '../../core/theme/lunora_tokens.dart';
@@ -6,6 +7,7 @@ import '../../shared/models/cycle.dart';
 import '../../shared/models/lunora_state.dart';
 import 'cycle_calendar.dart';
 import 'cycle_stats.dart';
+import 'cycle_prediction.dart';
 
 class CycleScreen extends StatefulWidget {
   const CycleScreen({
@@ -201,6 +203,7 @@ class _CycleScreenState extends State<CycleScreen> {
       lastDate: today,
       helpText: 'Pick a period start date',
     );
+    if (!mounted) return;
     if (start == null) return;
     final end = await showDatePicker(
       context: context,
@@ -264,7 +267,10 @@ class _CycleScreenState extends State<CycleScreen> {
   @override
   Widget build(BuildContext context) {
     final stats = CycleStats.compute(widget.state.cycles);
-    final band = stats?.likelyWindow();
+    final prediction = CyclePrediction.fromCycles(widget.state.cycles);
+    final band = prediction == null
+        ? stats?.likelyWindow()
+        : (start: prediction.earliest, end: prediction.latest);
 
     return Scaffold(
       body: SafeArea(
@@ -304,6 +310,10 @@ class _CycleScreenState extends State<CycleScreen> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: _statsStrip(stats),
               ),
+            if (prediction != null) ...[
+              _predictionCard(prediction),
+              const SizedBox(height: 16),
+            ],
             CycleCalendar(
               month: _month,
               cycles: widget.state.cycles,
@@ -323,6 +333,71 @@ class _CycleScreenState extends State<CycleScreen> {
             _statsCard(stats, band),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _predictionCard(CyclePrediction prediction) {
+    final date = DateFormat('MMM d').format(prediction.nextStart);
+    final range = '${DateFormat('MMM d').format(prediction.earliest)}–'
+        '${DateFormat('MMM d').format(prediction.latest)}';
+    final confidenceText = switch (prediction.confidence) {
+      'early' =>
+        'Early estimate from your last logged cycle. Another start date will help refine it.',
+      'steadier' =>
+        'Estimated from your recent cycle starts. Your timing may still vary.',
+      _ => 'Your logged cycle lengths vary, so this date range is wider.',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFFFFE6DF), LunoraTokens.purplePale],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .8),
+                shape: BoxShape.circle),
+            child:
+                Icon(Icons.auto_awesome_outlined, color: LunoraTokens.purple),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Next period estimate',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: LunoraTokens.inkSoft)),
+                const SizedBox(height: 3),
+                Text(date,
+                    style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                        color: LunoraTokens.ink)),
+                Text('Likely window: $range',
+                    style: TextStyle(fontSize: 12, color: LunoraTokens.ink)),
+                const SizedBox(height: 6),
+                Text(confidenceText,
+                    style: TextStyle(
+                        fontSize: 11,
+                        height: 1.35,
+                        color: LunoraTokens.inkSoft)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

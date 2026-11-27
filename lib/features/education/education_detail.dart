@@ -1,7 +1,7 @@
 // DEPRECATED — kept for Today screen Learn section.
 // The full-page version is education_detail_page.dart.
 // Migrate Today to the new page in a future wave.
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../content/education.dart';
 import '../../core/theme/lunora_tokens.dart';

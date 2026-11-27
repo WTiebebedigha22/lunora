@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 
 import 'core/theme/lunora_components.dart';
 import 'core/theme/lunora_schemes.dart';
 import 'core/theme/lunora_theme.dart';
 import 'core/theme/lunora_tokens.dart';
 import 'core/storage/lunora_store.dart';
+import 'core/notifications/lunora_notifications.dart';
 import 'l10n/app_localizations.dart';
 import 'shared/models/lunora_state.dart';
 import 'shared/models/theme_preferences.dart';
+import 'shared/models/cycle.dart';
 import 'features/onboarding/onboarding_flow.dart';
 import 'features/dashboard/today_screen.dart';
 import 'features/cycle/cycle_screen.dart';
@@ -29,11 +33,42 @@ class _LunoraAppState extends State<LunoraApp> {
   void initState() {
     super.initState();
     _state = LunoraStore.load();
+    if (_state.cycles.isEmpty) {
+      final lastStart = DateTime.tryParse(_state.onboarding?.lastPeriod ?? '');
+      final now = DateTime.now();
+      if (lastStart != null &&
+          !lastStart.isAfter(DateTime(now.year, now.month, now.day))) {
+        final key = '${lastStart.year.toString().padLeft(4, '0')}-'
+            '${lastStart.month.toString().padLeft(2, '0')}-'
+            '${lastStart.day.toString().padLeft(2, '0')}';
+        _state = _state.copyWith(
+          cycles: [Cycle(id: 'onboarding-$key', startDate: key)],
+        );
+        unawaited(LunoraStore.save(_state));
+      }
+    }
   }
 
   Future<void> _update(LunoraState next) async {
     setState(() => _state = next);
     await LunoraStore.save(next);
+    await LunoraNotifications.refresh(next);
+  }
+
+  Future<void> _completeOnboarding(OnboardingProfile profile) async {
+    final cycles = [..._state.cycles];
+    final lastStart = DateTime.tryParse(profile.lastPeriod ?? '');
+    final now = DateTime.now();
+    if (lastStart != null &&
+        !lastStart.isAfter(DateTime(now.year, now.month, now.day))) {
+      final key = '${lastStart.year.toString().padLeft(4, '0')}-'
+          '${lastStart.month.toString().padLeft(2, '0')}-'
+          '${lastStart.day.toString().padLeft(2, '0')}';
+      if (!cycles.any((cycle) => cycle.startDate == key)) {
+        cycles.add(Cycle(id: 'onboarding-$key', startDate: key));
+      }
+    }
+    await _update(_state.copyWith(onboarding: profile, cycles: cycles));
   }
 
   Brightness _resolveBrightness(ThemePreferences prefs) {
@@ -64,7 +99,7 @@ class _LunoraAppState extends State<LunoraApp> {
     LunoraTokens.apply(active, brightness);
 
     return MaterialApp(
-      onGenerateTitle: (ctx) => LunoraLocalizations.of(ctx).appTitle,
+      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       debugShowCheckedModeBanner: false,
       theme: LunoraTheme.build(
         scheme: light,
@@ -80,13 +115,14 @@ class _LunoraAppState extends State<LunoraApp> {
               ? ThemeMode.dark
               : ThemeMode.system,
       locale: _resolveLocale(prefs),
-      localizationsDelegates: LunoraLocalizations.localizationsDelegates,
-      supportedLocales: LunoraLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: !_state.isOnboarded
           ? OnboardingFlow(
-              onDone: (profile) => _update(
-                _state.copyWith(onboarding: profile),
-              ),
+              onDone: _completeOnboarding,
             )
           : _HomeShell(
               state: _state,
@@ -110,7 +146,7 @@ class _HomeShellState extends State<_HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final l = LunoraLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
 
     final pages = [
       TodayScreen(state: widget.state, onUpdate: widget.onUpdate),
@@ -127,6 +163,7 @@ class _HomeShellState extends State<_HomeShell> {
             cycles: widget.state.cycles,
             education: widget.state.education,
             theme: widget.state.theme,
+            notifications: widget.state.notifications,
           ));
         },
       ),

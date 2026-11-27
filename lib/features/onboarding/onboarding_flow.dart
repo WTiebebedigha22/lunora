@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/lunora_tokens.dart';
 import '../../shared/models/lunora_state.dart';
@@ -6,6 +6,7 @@ import '../../shared/models/avatar_catalog.dart';
 import '../../shared/models/symptom_catalog.dart';
 
 import 'package:lunora/l10n/app_localizations.dart';
+
 class OnboardingFlow extends StatefulWidget {
   const OnboardingFlow({super.key, required this.onDone});
   final ValueChanged<OnboardingProfile> onDone;
@@ -15,7 +16,7 @@ class OnboardingFlow extends StatefulWidget {
 }
 
 class _OnboardingFlowState extends State<OnboardingFlow> {
-  LunoraLocalizations get l10n => LunoraLocalizations.of(context);
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   int _step = 0;
   String? _goal;
@@ -447,24 +448,23 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         );
       case 5:
         return _screen(
-          title: 'Notifications',
-          body: 'We can gently nudge you to log symptoms and take '
-              'medications.',
+          title: 'Reminders, on your terms',
+          body:
+              'You can turn on period heads-ups, daily check-ins, and medication reminders in Settings whenever you’re ready.',
           content: Column(
             children: [
-              _optionPill(
-                label: 'Remind me',
-                glyph: '✓',
-                selected: true,
-                onTap: () {},
-                subtitle: 'Not live yet — saved for later',
-              ),
-              const SizedBox(height: 10),
-              _optionPill(
-                label: 'Not right now',
-                glyph: '—',
-                selected: false,
-                onTap: () {},
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: LunoraTokens.card,
+                  borderRadius: BorderRadius.circular(LunoraTokens.radiusLg),
+                ),
+                child: Text(
+                  'Nothing is scheduled unless you switch it on. You can change reminders or turn them off at any time.',
+                  style: TextStyle(
+                      fontSize: 14, height: 1.5, color: LunoraTokens.inkSoft),
+                ),
               ),
             ],
           ),
@@ -472,7 +472,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       case 6:
         return _screen(
           title: 'Choose your avatar',
-          body: 'Pick a little portrait that feels like you. You can change it any time.',
+          body:
+              'Pick a little portrait that feels like you. You can change it any time.',
           content: _avatarPicker(),
         );
       case 7:
@@ -571,7 +572,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 ),
               ),
               child: Center(
-                child: Text(AvatarCatalog.glyph(index), style: const TextStyle(fontSize: 27)),
+                child: Text(AvatarCatalog.glyph(index),
+                    style: const TextStyle(fontSize: 27)),
               ),
             ),
           );

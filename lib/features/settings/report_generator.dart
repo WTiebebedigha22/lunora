@@ -27,7 +27,7 @@ class ReportGenerator {
   static Future<void> generateAndShare({
     required LunoraState state,
     required int windowDays,
-    required LunoraLocalizations l10n,
+    required AppLocalizations l10n,
   }) async {
     final bytes = await _buildPdf(
       state: state,
@@ -44,7 +44,7 @@ class ReportGenerator {
   static Future<void> preview({
     required LunoraState state,
     required int windowDays,
-    required LunoraLocalizations l10n,
+    required AppLocalizations l10n,
   }) async {
     await Printing.layoutPdf(
       onLayout: (_) => _buildPdf(
@@ -58,7 +58,7 @@ class ReportGenerator {
   static Future<Uint8List> _buildPdf({
     required LunoraState state,
     required int windowDays,
-    required LunoraLocalizations l10n,
+    required AppLocalizations l10n,
   }) async {
     final cutoff = DateTime.now().subtract(Duration(days: windowDays));
     bool inWindow(String date) {

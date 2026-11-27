@@ -2,6 +2,7 @@ import 'cycle.dart';
 import 'day_log.dart';
 import 'medication.dart';
 import 'theme_preferences.dart';
+import 'notification_preferences.dart';
 
 class EducationProgress {
   EducationProgress({
@@ -55,11 +56,13 @@ class LunoraState {
     List<Cycle>? cycles,
     EducationProgress? education,
     ThemePreferences? theme,
+    NotificationPreferences? notifications,
   })  : logs = logs ?? {},
         meds = meds ?? [],
         cycles = cycles ?? [],
         education = education ?? EducationProgress(),
-        theme = theme ?? ThemePreferences();
+        theme = theme ?? ThemePreferences(),
+        notifications = notifications ?? const NotificationPreferences();
 
   final OnboardingProfile? onboarding;
   final Map<String, DayLog> logs;
@@ -67,6 +70,7 @@ class LunoraState {
   final List<Cycle> cycles;
   final EducationProgress education;
   final ThemePreferences theme;
+  final NotificationPreferences notifications;
 
   static LunoraState empty() => LunoraState();
 
@@ -79,6 +83,7 @@ class LunoraState {
     List<Cycle>? cycles,
     EducationProgress? education,
     ThemePreferences? theme,
+    NotificationPreferences? notifications,
   }) {
     return LunoraState(
       onboarding: onboarding ?? this.onboarding,
@@ -87,6 +92,7 @@ class LunoraState {
       cycles: cycles ?? this.cycles,
       education: education ?? this.education,
       theme: theme ?? this.theme,
+      notifications: notifications ?? this.notifications,
     );
   }
 
@@ -97,6 +103,7 @@ class LunoraState {
         'cycles': cycles.map((c) => c.toMap()).toList(),
         'education': education.toMap(),
         'theme': theme.toMap(),
+        'notifications': notifications.toMap(),
       };
 
   factory LunoraState.fromMap(Map<dynamic, dynamic> m) {
@@ -128,6 +135,10 @@ class LunoraState {
           ? ThemePreferences()
           : ThemePreferences.fromMap(
               Map<dynamic, dynamic>.from(m['theme'] as Map)),
+      notifications: m['notifications'] == null
+          ? const NotificationPreferences()
+          : NotificationPreferences.fromMap(
+              Map<dynamic, dynamic>.from(m['notifications'] as Map)),
     );
   }
 }

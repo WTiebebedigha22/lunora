@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'lunora_schemes.dart';
 
 class LunoraTheme {
@@ -25,6 +25,7 @@ class LunoraTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(
@@ -35,20 +36,20 @@ class LunoraTheme {
         titleTextStyle: TextStyle(
           color: scheme.ink,
           fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
       textTheme: TextTheme(
         displaySmall: TextStyle(
           color: scheme.ink,
           fontSize: 32,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           height: 1.15,
         ),
         headlineLarge: TextStyle(
           color: scheme.ink,
           fontSize: 28,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           height: 1.2,
         ),
         headlineMedium: TextStyle(
@@ -90,7 +91,7 @@ class LunoraTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(22),
           side: BorderSide(color: scheme.line),
         ),
       ),
@@ -101,7 +102,7 @@ class LunoraTheme {
           elevation: 0,
           minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(18),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
@@ -124,7 +125,7 @@ class LunoraTheme {
           minimumSize: const Size.fromHeight(52),
           side: BorderSide(color: scheme.primary),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(18),
           ),
           textStyle: const TextStyle(
             fontSize: 15,
@@ -140,15 +141,15 @@ class LunoraTheme {
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(color: scheme.line),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(color: scheme.line),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide(
             color: scheme.primary,
             width: 1.5,
@@ -163,8 +164,10 @@ class LunoraTheme {
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
+        dragHandleColor: scheme.inkPale,
+        showDragHandle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../content/education.dart';
 import '../../core/theme/lunora_components.dart';
@@ -319,71 +319,105 @@ class TodayScreen extends StatelessWidget {
         : stats?.lastStart == null
             ? 'Your cycle starts here'
             : 'Cycle day ${stats!.lastStart == null ? '—' : DateTime.now().difference(stats.lastStart!).inDays + 1}';
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFFFFE4DE), LunoraTokens.purplePale],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
+    final meter = SizedBox(
+      width: 104,
+      height: 104,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: 112,
-            height: 112,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox.expand(
-                  child: CircularProgressIndicator(
-                    value: hasPeriod ? (day! / 5).clamp(0.05, 1.0) : 0.12,
-                    strokeWidth: 9,
-                    strokeCap: StrokeCap.round,
-                    backgroundColor: Colors.white.withValues(alpha: .75),
-                    valueColor: AlwaysStoppedAnimation(LunoraTokens.purple),
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(hasPeriod ? '$day' : '♡', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
-                    Text(hasPeriod ? 'day' : 'cycle', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
-                  ],
-                ),
-              ],
+          SizedBox.expand(
+            child: CircularProgressIndicator(
+              value: hasPeriod ? (day! / 5).clamp(0.05, 1.0) : 0.12,
+              strokeWidth: 8,
+              strokeCap: StrokeCap.round,
+              backgroundColor: Colors.white.withValues(alpha: .8),
+              valueColor: AlwaysStoppedAnimation(LunoraTokens.purple),
             ),
           ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(phaseLabel, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
-                const SizedBox(height: 6),
-                Text(
-                  hasPeriod
-                      ? 'Take a moment to check in with yourself.'
-                      : stats?.lastStart == null
-                          ? 'Log a period to start learning your cycle.'
-                          : 'Your cycle is being tracked as you log.',
-                  style: TextStyle(fontSize: 13, height: 1.4, color: LunoraTokens.inkSoft),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: .8), borderRadius: BorderRadius.circular(30)),
-                  child: Text(hasPeriod ? 'Period in progress' : 'Cycle tracking', style: TextStyle(fontWeight: FontWeight.w600, color: LunoraTokens.purpleDeep, fontSize: 12)),
-                ),
-              ],
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(hasPeriod ? '$day' : '♡',
+                  style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: LunoraTokens.ink)),
+              Text(hasPeriod ? 'day' : 'cycle',
+                  style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+            ],
           ),
         ],
       ),
     );
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(phaseLabel,
+            style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                color: LunoraTokens.ink)),
+        const SizedBox(height: 6),
+        Text(
+          hasPeriod
+              ? 'Take a moment to check in with yourself.'
+              : stats?.lastStart == null
+                  ? 'Log a period to start learning your cycle.'
+                  : 'Your cycle is being tracked as you log.',
+          style: TextStyle(
+              fontSize: 13, height: 1.45, color: LunoraTokens.inkSoft),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+          decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .82),
+              borderRadius: BorderRadius.circular(30)),
+          child: Text(hasPeriod ? 'Period in progress' : 'Cycle tracking',
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: LunoraTokens.purpleDeep,
+                  fontSize: 12)),
+        ),
+      ],
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 370;
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [LunoraTokens.purpleSoft, LunoraTokens.purplePale],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(LunoraTokens.radiusXl),
+          boxShadow: LunoraTokens.isDark
+              ? const []
+              : [
+                  BoxShadow(
+                    color: LunoraTokens.purple.withValues(alpha: .1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: compact
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [meter, const SizedBox(height: 18), details],
+              )
+            : Row(
+                children: [
+                  meter,
+                  const SizedBox(width: 18),
+                  Expanded(child: details),
+                ],
+              ),
+      );
+    });
   }
 
   Widget _insightCard({

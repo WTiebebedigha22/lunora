@@ -435,6 +435,8 @@ LunoraState applyDemoProfile(LunoraState current, String profileId) {
     meds: profile.meds,
     cycles: profile.cycles,
     education: current.education,
+    theme: current.theme,
+    notifications: current.notifications,
   );
 }
 

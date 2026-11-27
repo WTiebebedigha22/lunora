@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/storage/lunora_store.dart';
 import '../../core/theme/lunora_schemes.dart';
@@ -6,9 +6,9 @@ import '../../core/theme/lunora_tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/models/lunora_state.dart';
 import '../../shared/models/avatar_catalog.dart';
-import '../../shared/models/theme_preferences.dart';
 import 'demo_data_screen.dart';
 import 'report_generator.dart';
+import 'notification_settings_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -44,7 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _clearAll() async {
-    final l = LunoraLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
     final confirmed = await _confirmDialog(
       title: l.clearAllData,
       body: l.clearAllSubtitle,
@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _resetOnboarding() async {
-    final l = LunoraLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
     final ok = await _confirmDialog(
       title: l.rerunOnboarding,
       body: l.rerunSubtitle,
@@ -72,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await ReportGenerator.preview(
         state: widget.state,
         windowDays: _reportWindow,
-        l10n: LunoraLocalizations.of(context),
+        l10n: AppLocalizations.of(context)!,
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await ReportGenerator.generateAndShare(
         state: widget.state,
         windowDays: _reportWindow,
-        l10n: LunoraLocalizations.of(context),
+        l10n: AppLocalizations.of(context)!,
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -97,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String body,
     required String confirmLabel,
   }) {
-    final l = LunoraLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
     return showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -122,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l = LunoraLocalizations.of(context);
+    final l = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -144,6 +144,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _colorSchemeCard(l),
             const SizedBox(height: 10),
             _languageCard(l),
+
+            const SizedBox(height: 28),
+            _sectionLabel('Reminders & support'),
+            NotificationSettingsCard(
+              preferences: widget.state.notifications,
+              onChanged: (preferences) => widget.onUpdate(
+                widget.state.copyWith(notifications: preferences),
+              ),
+            ),
 
             const SizedBox(height: 28),
 
@@ -230,16 +239,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: LunoraTokens.purplePale,
-                child: Text(AvatarCatalog.glyph(profile.avatar), style: const TextStyle(fontSize: 29)),
+                child: Text(AvatarCatalog.glyph(profile.avatar),
+                    style: const TextStyle(fontSize: 29)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Your avatar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: LunoraTokens.ink)),
+                    Text('Your avatar',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: LunoraTokens.ink)),
                     const SizedBox(height: 2),
-                    Text('Choose a portrait that feels like you', style: TextStyle(fontSize: 12, color: LunoraTokens.inkSoft)),
+                    Text('Choose a portrait that feels like you',
+                        style: TextStyle(
+                            fontSize: 12, color: LunoraTokens.inkSoft)),
                   ],
                 ),
               ),
@@ -260,7 +276,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     avatar: index,
                     onboardedAt: profile.onboardedAt,
                   );
-                  await widget.onUpdate(widget.state.copyWith(onboarding: updatedProfile));
+                  await widget.onUpdate(
+                      widget.state.copyWith(onboarding: updatedProfile));
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
@@ -269,9 +286,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   decoration: BoxDecoration(
                     color: selected ? LunoraTokens.purpleSoft : LunoraTokens.bg,
                     shape: BoxShape.circle,
-                    border: Border.all(color: selected ? LunoraTokens.purple : LunoraTokens.line, width: selected ? 2 : 1),
+                    border: Border.all(
+                        color:
+                            selected ? LunoraTokens.purple : LunoraTokens.line,
+                        width: selected ? 2 : 1),
                   ),
-                  child: Center(child: Text(AvatarCatalog.glyph(index), style: const TextStyle(fontSize: 24))),
+                  child: Center(
+                      child: Text(AvatarCatalog.glyph(index),
+                          style: const TextStyle(fontSize: 24))),
                 ),
               );
             }),
@@ -296,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _themeModeCard(LunoraLocalizations l) {
+  Widget _themeModeCard(AppLocalizations l) {
     final modes = ['light', 'dark', 'system'];
     final labels = [l.themeLight, l.themeDark, l.themeSystem];
     final icons = [
@@ -355,7 +377,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _colorSchemeCard(LunoraLocalizations l) {
+  Widget _colorSchemeCard(AppLocalizations l) {
     final active = widget.state.theme.schemeId;
     final labels = [
       l.schemePurple,
@@ -417,7 +439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _languageCard(LunoraLocalizations l) {
+  Widget _languageCard(AppLocalizations l) {
     final active = widget.state.theme.localeCode;
     final options = [
       ('system', l.languageSystem, '🌐'),
@@ -500,7 +522,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _reportsCard(LunoraLocalizations l) {
+  Widget _reportsCard(AppLocalizations l) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

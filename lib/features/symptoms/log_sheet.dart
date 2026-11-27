@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/lunora_components.dart';
 import '../../core/theme/lunora_tokens.dart';
@@ -16,7 +16,7 @@ class LogSheet extends StatefulWidget {
 }
 
 class _LogSheetState extends State<LogSheet> {
-  LunoraLocalizations get l10n => LunoraLocalizations.of(context);
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   late final Set<String> _selected;
   late int _severity;

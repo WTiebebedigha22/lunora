@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/lunora_components.dart';
 import '../../core/theme/lunora_tokens.dart';
@@ -59,7 +59,7 @@ class _LogList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = LunoraLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
 
     final entries = state.logs.entries.where((e) => !e.value.isEmpty).toList()
       ..sort((a, b) => b.key.compareTo(a.key));
